@@ -26,7 +26,9 @@ void main() {
       expect(find.text('Kamu telah menekan tombol $name!'), findsOneWidget);
       if (name == 'Tambah Proyek') {
         await tester.pumpAndSettle();
-        await tester.pageBack();
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+        await tester.pump(const Duration(seconds: 5));
         await tester.pumpAndSettle();
       }
     }
