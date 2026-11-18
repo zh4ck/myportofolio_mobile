@@ -45,7 +45,9 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                   decoration: InputDecoration(
                     hintText: 'Nama Proyek',
                     labelText: 'Nama Proyek',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
                   ),
                   onChanged: (value) => setState(() => _projectName = value),
                   validator: (value) => value == null || value.trim().isEmpty
@@ -60,7 +62,9 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                   decoration: InputDecoration(
                     hintText: 'Deskripsi Proyek',
                     labelText: 'Deskripsi Proyek',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
                   ),
                   onChanged: (value) => setState(() => _description = value),
                   validator: (value) => value == null || value.trim().isEmpty
@@ -73,11 +77,18 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                 child: DropdownButtonFormField<String>(
                   decoration: InputDecoration(
                     labelText: 'Kategori Proyek',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
                   ),
                   initialValue: 'Web Development',
                   items: _categories
-                      .map((category) => DropdownMenuItem(value: category, child: Text(category)))
+                      .map(
+                        (category) => DropdownMenuItem(
+                          value: category,
+                          child: Text(category),
+                        ),
+                      )
                       .toList(),
                   onChanged: (value) => setState(() => _category = value!),
                 ),
@@ -88,7 +99,9 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                   decoration: InputDecoration(
                     hintText: 'Contoh: Flutter, Django, Figma',
                     labelText: 'Teknologi yang Digunakan',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
                   ),
                   onChanged: (value) => setState(() => _technologies = value),
                 ),
@@ -99,7 +112,9 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                   decoration: InputDecoration(
                     hintText: 'URL Proyek (opsional)',
                     labelText: 'Tautan Proyek',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
                   ),
                   onChanged: (value) => setState(() => _projectLink = value),
                 ),
@@ -109,7 +124,9 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: ElevatedButton(
-                    style: ButtonStyle(backgroundColor: WidgetStateProperty.all(Colors.indigo)),
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStateProperty.all(Colors.indigo),
+                    ),
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
                         showDialog(
@@ -148,7 +165,10 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                         );
                       }
                     },
-                    child: const Text('Save', style: TextStyle(color: Colors.white)),
+                    child: const Text(
+                      'Save',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ),
               ),

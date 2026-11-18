@@ -18,6 +18,7 @@ Kelas : PBP F
 
 - **Tutorial 08:** Inisialisasi proyek Flutter, memisahkan halaman menu ke `lib/menu.dart`, dan membuat halaman utama stateless dengan kartu informasi serta aksi.
 - **Tugas 7:** Melengkapi identitas pribadi, membedakan warna setiap action melalui model `ItemHomepage`, mempertahankan feedback SnackBar, dan memperbarui pengujian serta dokumentasi.
+- **Tutorial 09:** Menambahkan drawer, navigasi ke formulir proyek, validasi dan dialog data proyek. Halaman berada di `lib/screens/`, sedangkan drawer dan kartu aksi berada di `lib/widgets/`. Data formulir hanya ditampilkan di dialog dan belum disimpan.
 
 ## Penggunaan AI
 
