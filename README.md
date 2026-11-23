@@ -19,10 +19,15 @@ Kelas : PBP F
 - **Tutorial 08:** Inisialisasi proyek Flutter, memisahkan halaman menu ke `lib/menu.dart`, dan membuat halaman utama stateless dengan kartu informasi serta aksi.
 - **Tugas 7:** Melengkapi identitas pribadi, membedakan warna setiap action melalui model `ItemHomepage`, mempertahankan feedback SnackBar, dan memperbarui pengujian serta dokumentasi.
 - **Tutorial 09:** Menambahkan drawer, navigasi ke formulir proyek, validasi dan dialog data proyek. Halaman berada di `lib/screens/`, sedangkan drawer dan kartu aksi berada di `lib/widgets/`. Data formulir hanya ditampilkan di dialog dan belum disimpan.
+- **Tugas 8:** Menambahkan formulir edukasi yang bisa dibuka lewat kartu aksi dan drawer. Isi formulir divalidasi lalu ditampilkan dalam dialog, belum disimpan secara permanen.
 
 ## Penggunaan AI
 
-Pengerjaan Tugas 7 dibantu Google Overview melalui Google Search. Dipergunakan untuk debugging saat terjadi kesalahan serta memeriksa command yang tersedia untuk aplikasi Flutter.
+Pengerjaan **Tugas 7** dibantu Google Overview melalui Google Search. Dipergunakan untuk debugging saat terjadi kesalahan serta memeriksa command yang tersedia untuk aplikasi Flutter.
+
+Untuk **Tugas 8**, saya menggunakan DeepSeek v4.1 Flash untuk menjelaskan beberapa konsep yang masih belum saya pahami sepenuhnya seperti perbedaan `pushReplacement` dengan `pop` dan peran `GlobalKey<FormState>`. Instruksi yang saya berikan seputar menjelaskan apa perbedaan antara keduanya, bagaimana penggunaannya, dan penyelerasan pemahaman. Percakapn dapat dilihat [di sini](https://chat.deepseek.com/share/cpwxdrz371n1jluerk).
+
+AI tidak selalu benar dan bisa saja menggunakan context atau pengetahuan yang sudah kadaluarsa/outdated atau yang terparahnya tidak tersedia (hallucination). Sehingga manusia tetap diperlukan untuk memeriksa kembali jawaban yang diberikan oleh Generative AI, seperti memeriksa langsung pada dokumentasi resmi Flutter, atau melihat arsip atau repository developer lain yang sudah terverifikasi. Dokumentasi Flutter yang saya gunakan dapat diakses [di sini](https://docs.flutter.dev/cookbook/navigation/navigation-basics).
 
 ## Pertanyaan reflektif
 
@@ -61,3 +66,13 @@ Pengerjaan Tugas 7 dibantu Google Overview melalui Google Search. Dipergunakan u
 5. `BuildContext` adalah pointer ke lokasi sebuah widget dalam element tree. Dalam `build`, context memungkinkan widget mengakses ancestor dan data turunan, seperti `Theme.of(context)`. Pada `ItemCard`, `ScaffoldMessenger.of(context)` menemukan messenger terdekat untuk menampilkan SnackBar. Context harus berada di bawah ancestor yang dicari. Setelah operasi async, periksa `context.mounted` sebelum menggunakannya karena widget mungkin saja dikeluarkan dari tree
 
 6. Hot reload melakukan perubahan kode Dart dan rebuild widget sambil mempertahankan state aplikasi, biasanya cocok untuk mengubah tampilan atau metode `build`. Hot restart menjalankan ulang aplikasi Dart dari awal dan menghapus state, sehingga cocok ketika perubahan inisialisasi atau state awal tidak tercermin oleh hot reload. Perubahan kode native Android/iOS, konfigurasi build, atau dependensi native umumnya memerlukan penghentian dan pembangunan ulang aplikasi (full restart). Tidak semua perubahan struktur kode didukung hot reload, sehingga pesan Flutter dan hasil aktual tetap perlu diperiksa
+
+### Tugas 8
+
+1. `Navigator.push()` menambahkan halaman baru ke atas stack, jadi halaman sebelumnya masih ada dan bisa dituju lagi dengan kembali. `Navigator.pushReplacement()` mengganti halaman yang sedang aktif dengan halaman baru, sedangkan `Navigator.pop()` mengeluarkan halaman atau dialog teratas dari stack. Untuk kartu Tambah Edukasi saya menggunakan `push`, jadi tombol kembali perangkat bisa membawa pengguna ke halaman sebelumnya. Untuk Home di drawer, `pushReplacement` mengganti halaman formulir dengan halaman utama yang baru, bukan mencari halaman utama lama di stack.
+
+2. `Scaffold` menyediakan kerangka halaman seperti tempat untuk `AppBar`, drawer, dan body. Dengan begitu susunan dasarnya tetap sama walaupun isi setiap halaman berbeda. `AppBar` memberikan judul dan akses navigasi, sedangkan `LeftDrawer` yang sama dipakai di halaman utama dan formulir agar pilihannya konsisten. Contoh warna yang dipakai di lebih dari satu halaman adalah warna primary dari tema indigo pada `AppBar` halaman utama dan formulir edukasi.
+
+3. Saya menyusun input secara vertikal dengan `Column` karena field edukasi dibaca dan diisi satu per satu. `Padding` memberi ruang di sekitar formulir, sementara `SizedBox` memberi jarak antar input dan tombol supaya tidak terlalu berdesakan. Saat layar pendek atau keyboard muncul, `SingleChildScrollView` memungkinkan isi digulir sampai tombol Simpan tetap bisa dijangkau.
+
+4. `GlobalKey<FormState>` memberikan akses ke state formulir dari tombol Simpan. Saat tombol ditekan, `validate()` menjalankan validator setiap input dan menampilkan pesan pada kolom yang salah, dialog baru muncul kalau semuanya valid. Misalnya, institusi yang hanya berisi spasi ditolak karena setelah `trim()` nilainya kosong. Untuk tanggal mulai saya menggunakan `showDatePicker` supaya pilihan tanggal lebih mudah dan dibatasi dari tahun 1900 sampai hari ini. Walaupun begitu, pemilihan tanggal saja belum cukup karena pengguna bisa menutup picker tanpa memilih apa pun, jadi validator tetap memeriksa apakah tanggal sudah diisi.
