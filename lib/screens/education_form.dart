@@ -12,13 +12,14 @@ class _EducationFormPageState extends State<EducationFormPage> {
   final _kunciForm = GlobalKey<FormState>();
   final _institusi = TextEditingController();
   final _jurusan = TextEditingController();
-  final _tahun = TextEditingController();
+  final _tanggal = TextEditingController();
+  DateTime? _tanggalMulai;
 
   @override
   void dispose() {
     _institusi.dispose();
     _jurusan.dispose();
-    _tahun.dispose();
+    _tanggal.dispose();
     super.dispose();
   }
 
@@ -32,17 +33,22 @@ class _EducationFormPageState extends State<EducationFormPage> {
     return null;
   }
 
-  String? _cekTahun(String? nilai) {
-    final teks = nilai?.trim() ?? '';
-    if (teks.isEmpty) return 'Tahun wajib diisi';
-    final tahun = int.tryParse(teks);
-    if (!RegExp(r'^\d{4}$').hasMatch(teks) ||
-        tahun == null ||
-        tahun < 1900 ||
-        tahun > DateTime.now().year) {
-      return 'Masukkan tahun antara 1900 dan tahun sekarang';
-    }
-    return null;
+  Future<void> _pilihTanggal() async {
+    final sekarang = DateTime.now();
+    final pilihan = await showDatePicker(
+      context: context,
+      initialDate: _tanggalMulai ?? sekarang,
+      firstDate: DateTime(1900),
+      lastDate: sekarang,
+      initialDatePickerMode: DatePickerMode.year,
+    );
+    if (!mounted || pilihan == null) return;
+    setState(() {
+      _tanggalMulai = pilihan;
+      _tanggal.text =
+          '${pilihan.day.toString().padLeft(2, '0')}/'
+          '${pilihan.month.toString().padLeft(2, '0')}/${pilihan.year}';
+    });
   }
 
   void _simpan() {
@@ -58,7 +64,7 @@ class _EducationFormPageState extends State<EducationFormPage> {
             children: [
               Text('Institusi: ${_institusi.text.trim()}'),
               Text('Jurusan: ${_jurusan.text.trim()}'),
-              Text('Tahun mulai: ${_tahun.text.trim()}'),
+              Text('Tanggal mulai: ${_tanggal.text}'),
             ],
           ),
         ),
@@ -103,10 +109,16 @@ class _EducationFormPageState extends State<EducationFormPage> {
               ),
               const SizedBox(height: 16),
               TextFormField(
-                controller: _tahun,
-                decoration: const InputDecoration(labelText: 'Tahun mulai'),
-                keyboardType: TextInputType.number,
-                validator: _cekTahun,
+                controller: _tanggal,
+                readOnly: true,
+                decoration: const InputDecoration(
+                  labelText: 'Tanggal mulai',
+                  suffixIcon: Icon(Icons.calendar_today),
+                ),
+                onTap: _pilihTanggal,
+                validator: (nilai) => nilai == null || nilai.isEmpty
+                    ? 'Tanggal mulai wajib dipilih'
+                    : null,
               ),
               const SizedBox(height: 24),
               ElevatedButton(onPressed: _simpan, child: const Text('Simpan')),

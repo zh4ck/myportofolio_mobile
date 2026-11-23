@@ -18,7 +18,7 @@ void main() {
     await tester.tap(find.text('Simpan'));
     await tester.pumpAndSettle();
     expect(find.text('Kolom ini wajib diisi'), findsNWidgets(2));
-    expect(find.text('Tahun wajib diisi'), findsOneWidget);
+    expect(find.text('Tanggal mulai wajib dipilih'), findsOneWidget);
     expect(find.text('Ringkasan Edukasi'), findsNothing);
 
     await tester.enterText(
@@ -29,33 +29,39 @@ void main() {
       find.widgetWithText(TextFormField, 'Jurusan'),
       'Informatika',
     );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Tahun mulai'),
-      'abcd',
-    );
     await tester.ensureVisible(find.text('Simpan'));
     await tester.tap(find.text('Simpan'));
     await tester.pumpAndSettle();
     expect(find.text('Kolom ini wajib diisi'), findsOneWidget);
-    expect(
-      find.text('Masukkan tahun antara 1900 dan tahun sekarang'),
-      findsOneWidget,
-    );
+    expect(find.text('Tanggal mulai wajib dipilih'), findsOneWidget);
 
     await tester.enterText(
       find.widgetWithText(TextFormField, 'Institusi'),
       'Universitas Indonesia',
     );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Tahun mulai'),
-      '2025',
-    );
+    await tester.tap(find.widgetWithText(TextFormField, 'Tanggal mulai'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Simpan'));
+    await tester.pumpAndSettle();
+    expect(find.text('Tanggal mulai wajib dipilih'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(TextFormField, 'Tanggal mulai'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    final tanggal = tester
+        .widget<TextFormField>(find.widgetWithText(TextFormField, 'Tanggal mulai'))
+        .controller!
+        .text;
+    expect(tanggal, isNotEmpty);
     await tester.ensureVisible(find.text('Simpan'));
     await tester.tap(find.text('Simpan'));
     await tester.pumpAndSettle();
     expect(find.text('Institusi: Universitas Indonesia'), findsOneWidget);
     expect(find.text('Jurusan: Informatika'), findsOneWidget);
-    expect(find.text('Tahun mulai: 2025'), findsOneWidget);
+    expect(find.text('Tanggal mulai: $tanggal'), findsOneWidget);
     await tester.tap(find.text('Tutup'));
     await tester.pumpAndSettle();
     expect(find.text('Ringkasan Edukasi'), findsNothing);
