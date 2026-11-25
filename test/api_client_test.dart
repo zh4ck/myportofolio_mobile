@@ -18,7 +18,7 @@ void main() {
                 'id': 'uuid',
                 'title': 'Portfolio',
                 'description': 'Web',
-                'tech_stack': 'Dart',
+                'tech_stack': 'web-development',
                 'project_url': 'https://example.com',
                 'project_image_url': null,
               },
@@ -28,7 +28,7 @@ void main() {
         }
         expect(request.headers['authorization'], 'Token key');
         final body = jsonDecode(request.body) as Map<String, dynamic>;
-        expect(body['tech_stack'], 'Dart');
+        expect(body['tech_stack'], 'web-development');
         expect(body.containsKey('id'), isFalse);
         return http.Response(jsonEncode({...body, 'id': 'new-uuid'}), 201);
       }),

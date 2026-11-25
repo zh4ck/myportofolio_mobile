@@ -14,7 +14,7 @@ void main() {
       client: MockClient((request) async {
         if (request.url.path == '/api/v1/projects/') {
           return http.Response(
-            '[{"id":"one","title":"Portfolio","description":"My work","tech_stack":"Flutter","project_url":"https://example.com"}]',
+            '[{"id":"one","title":"Portfolio","description":"My work","tech_stack":"web-development","project_url":"https://example.com"}]',
             200,
           );
         }

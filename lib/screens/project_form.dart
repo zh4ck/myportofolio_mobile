@@ -17,7 +17,7 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _title = TextEditingController();
   final _description = TextEditingController();
-  final _techStack = TextEditingController();
+  String? _category;
   final _projectUrl = TextEditingController();
   final _imageUrl = TextEditingController();
   bool _saving = false;
@@ -26,7 +26,6 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
   void dispose() {
     _title.dispose();
     _description.dispose();
-    _techStack.dispose();
     _projectUrl.dispose();
     _imageUrl.dispose();
     super.dispose();
@@ -66,7 +65,7 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
         Project(
           title: _title.text.trim(),
           description: _description.text.trim(),
-          techStack: _techStack.text.trim(),
+          techStack: _category!,
           projectUrl: _projectUrl.text.trim(),
           projectImageUrl: _imageUrl.text.trim(),
         ),
@@ -152,14 +151,37 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
               validator: _requiredText,
             ),
             const SizedBox(height: 16),
-            TextFormField(
-              controller: _techStack,
+            DropdownButtonFormField<String>(
+              initialValue: _category,
               decoration: const InputDecoration(
-                labelText: 'Teknologi yang Digunakan',
-                hintText: 'Contoh: Flutter, Django, Figma',
+                labelText: 'Kategori Proyek',
                 border: OutlineInputBorder(),
               ),
-              validator: (value) => _requiredText(value, maxLength: 255),
+              items: const [
+                DropdownMenuItem(
+                  value: 'photography',
+                  child: Text('Fotografi'),
+                ),
+                DropdownMenuItem(
+                  value: 'web-development',
+                  child: Text('Pengembangan Web'),
+                ),
+                DropdownMenuItem(
+                  value: 'video-editing',
+                  child: Text('Penyuntingan Video'),
+                ),
+                DropdownMenuItem(
+                  value: 'motion-graphics',
+                  child: Text('Grafis Gerak'),
+                ),
+                DropdownMenuItem(
+                  value: 'graphics-design',
+                  child: Text('Desain Grafis'),
+                ),
+                DropdownMenuItem(value: 'others', child: Text('Lainnya')),
+              ],
+              onChanged: (value) => setState(() => _category = value),
+              validator: _requiredText,
             ),
             const SizedBox(height: 16),
             TextFormField(
