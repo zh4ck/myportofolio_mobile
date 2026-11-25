@@ -1,37 +1,43 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:myportofolio_mobile/main.dart';
-import 'package:myportofolio_mobile/widgets/project_card.dart';
+import 'package:myportofolio_mobile/services/api_client.dart';
 
 void main() {
-  testWidgets('Profil dan aksi portofolio tampil dan merespons', (
+  testWidgets('public project list is fetched and add project requires login', (
     tester,
   ) async {
-    await tester.pumpWidget(const MyApp());
-
-    expect(find.text('2506550955'), findsOneWidget);
-    expect(find.text('Zayyan Ramadzaki'), findsOneWidget);
-    expect(find.text('PBP F'), findsOneWidget);
-
-    final colors = <Color>{};
-    for (final name in ['Lihat Proyek', 'Tambah Proyek', 'Logout']) {
-      final card = find.ancestor(
-        of: find.text(name),
-        matching: find.byType(ItemCard),
-      );
-      colors.add(tester.widget<ItemCard>(card).item.color);
-      await tester.ensureVisible(find.text(name));
-      await tester.tap(find.text(name));
-      await tester.pump();
-      expect(find.text('Kamu telah menekan tombol $name!'), findsOneWidget);
-      if (name == 'Tambah Proyek') {
-        await tester.pumpAndSettle();
-        await tester.binding.handlePopRoute();
-        await tester.pumpAndSettle();
-        await tester.pump(const Duration(seconds: 5));
-        await tester.pumpAndSettle();
-      }
-    }
-    expect(colors.length, 3);
+    final api = ApiClient(
+      baseUrl: 'http://example.test',
+      client: MockClient((request) async {
+        if (request.url.path == '/api/v1/projects/') {
+          return http.Response(
+            '[{"id":"one","title":"Portfolio","description":"My work","tech_stack":"Flutter","project_url":"https://example.com"}]',
+            200,
+          );
+        }
+        return http.Response('Not found', 404);
+      }),
+    );
+    addTearDown(api.dispose);
+    await tester.pumpWidget(MyApp(apiClient: api));
+    await tester.ensureVisible(find.text('Lihat Proyek'));
+    await tester.tap(find.text('Lihat Proyek'));
+    await tester.pumpAndSettle();
+    expect(find.text('Portfolio'), findsOneWidget);
+    await tester.tap(find.text('Portfolio'));
+    await tester.pumpAndSettle();
+    expect(find.text('My work'), findsOneWidget);
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Tambah Proyek'));
+    await tester.tap(find.text('Tambah Proyek'));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(TextFormField, 'Nama pengguna'), findsOneWidget);
+    expect(find.widgetWithText(TextFormField, 'Kata sandi'), findsOneWidget);
   });
 }

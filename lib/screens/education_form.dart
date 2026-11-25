@@ -1,4 +1,9 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:myportofolio_mobile/models/education.dart';
+import 'package:myportofolio_mobile/services/api_client.dart';
+import 'package:myportofolio_mobile/services/auth_state.dart';
+import 'package:myportofolio_mobile/widgets/auth_guard.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 
 class EducationFormPage extends StatefulWidget {
@@ -14,6 +19,7 @@ class _EducationFormPageState extends State<EducationFormPage> {
   final _jurusan = TextEditingController();
   final _tanggal = TextEditingController();
   DateTime? _tanggalMulai;
+  bool _isSaving = false;
 
   @override
   void dispose() {
@@ -27,8 +33,8 @@ class _EducationFormPageState extends State<EducationFormPage> {
     if (nilai == null || nilai.trim().isEmpty) {
       return 'Kolom ini wajib diisi';
     }
-    if (nilai.trim().length > 100) {
-      return 'Maksimal 100 karakter';
+    if (nilai.trim().length > 255) {
+      return 'Maksimal 255 karakter';
     }
     return null;
   }
@@ -51,31 +57,88 @@ class _EducationFormPageState extends State<EducationFormPage> {
     });
   }
 
-  void _simpan() {
-    if (!_kunciForm.currentState!.validate()) return;
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Ringkasan Edukasi'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Institusi: ${_institusi.text.trim()}'),
-              Text('Jurusan: ${_jurusan.text.trim()}'),
-              Text('Tanggal mulai: ${_tanggal.text}'),
-            ],
-          ),
+  Future<void> _simpan() async {
+    if (_isSaving || !_kunciForm.currentState!.validate()) return;
+    setState(() => _isSaving = true);
+
+    try {
+      final loggedIn = await ensureLoggedIn(context);
+      if (!mounted || !loggedIn) return;
+
+      final token = context.read<AuthState>().token;
+      if (token == null || token.isEmpty) {
+        throw StateError('Sesi tidak tersedia');
+      }
+
+      final tanggal = _tanggalMulai!;
+      final startedAt =
+          '${tanggal.year.toString().padLeft(4, '0')}-'
+          '${tanggal.month.toString().padLeft(2, '0')}-'
+          '${tanggal.day.toString().padLeft(2, '0')}';
+      final education = Education(
+        institution: _institusi.text.trim(),
+        major: _jurusan.text.trim(),
+        startedAt: startedAt,
+      );
+      await context.read<ApiClient>().createEducation(education, token: token);
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Edukasi berhasil disimpan'),
+          content: const Text('Data edukasi berhasil ditambahkan.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Tutup'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Tutup'),
-          ),
-        ],
-      ),
-    );
+      );
+      if (!mounted) return;
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context, true);
+      } else {
+        _kunciForm.currentState!.reset();
+        _institusi.clear();
+        _jurusan.clear();
+        _tanggal.clear();
+        _tanggalMulai = null;
+      }
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      var message = 'Gagal menyimpan edukasi. Silakan coba lagi.';
+      if (error.statusCode == 401) {
+        message = 'Sesi tidak valid. Silakan masuk kembali.';
+        try {
+          await context.read<AuthState>().logout();
+        } catch (_) {
+          message =
+              'Sesi tidak valid. Silakan masuk kembali. '
+              'Gagal menghubungi server saat keluar.';
+        }
+        if (!mounted) return;
+      } else if (error.statusCode == 403) {
+        message = 'Akun Anda tidak memiliki izin untuk menambahkan edukasi.';
+      }
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
+      if (error.statusCode == 401) {
+        await ensureLoggedIn(context);
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gagal menyimpan edukasi. Silakan coba lagi.'),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   @override
@@ -96,6 +159,7 @@ class _EducationFormPageState extends State<EducationFormPage> {
             children: [
               TextFormField(
                 controller: _institusi,
+                enabled: !_isSaving,
                 decoration: const InputDecoration(labelText: 'Institusi'),
                 textCapitalization: TextCapitalization.words,
                 validator: _cekTeks,
@@ -104,6 +168,7 @@ class _EducationFormPageState extends State<EducationFormPage> {
               TextFormField(
                 controller: _jurusan,
                 decoration: const InputDecoration(labelText: 'Jurusan'),
+                enabled: !_isSaving,
                 textCapitalization: TextCapitalization.words,
                 validator: _cekTeks,
               ),
@@ -111,6 +176,7 @@ class _EducationFormPageState extends State<EducationFormPage> {
               TextFormField(
                 controller: _tanggal,
                 readOnly: true,
+                enabled: !_isSaving,
                 decoration: const InputDecoration(
                   labelText: 'Tanggal mulai',
                   suffixIcon: Icon(Icons.calendar_today),
@@ -121,7 +187,16 @@ class _EducationFormPageState extends State<EducationFormPage> {
                     : null,
               ),
               const SizedBox(height: 24),
-              ElevatedButton(onPressed: _simpan, child: const Text('Simpan')),
+              ElevatedButton(
+                onPressed: _isSaving ? null : _simpan,
+                child: _isSaving
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Simpan'),
+              ),
             ],
           ),
         ),

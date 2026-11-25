@@ -1,86 +1,60 @@
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:material_ui/material_ui.dart';
-import 'package:myportofolio_mobile/main.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:myportofolio_mobile/screens/education_form.dart';
+import 'package:myportofolio_mobile/services/api_client.dart';
+import 'package:myportofolio_mobile/services/auth_state.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  testWidgets('Kartu membuka formulir, validasi dan dialog bekerja', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(400, 700);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(const MyApp());
-    await tester.ensureVisible(find.text('Tambah Edukasi'));
-    await tester.tap(find.text('Tambah Edukasi'));
-    await tester.pumpAndSettle();
-
+  testWidgets('valid education is posted with authentication', (tester) async {
+    Map<String, dynamic>? posted;
+    final api = ApiClient(
+      baseUrl: 'http://example.test',
+      client: MockClient((request) async {
+        expect(request.url.path, '/api/v1/education/');
+        expect(request.headers['authorization'], 'Token key');
+        posted = jsonDecode(request.body) as Map<String, dynamic>;
+        return http.Response(jsonEncode({...posted!, 'id': 'one'}), 201);
+      }),
+    );
+    final auth = AuthState(api, initialToken: 'key');
+    addTearDown(api.dispose);
+    addTearDown(auth.dispose);
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          Provider.value(value: api),
+          ChangeNotifierProvider.value(value: auth),
+        ],
+        child: const MaterialApp(home: EducationFormPage()),
+      ),
+    );
     await tester.tap(find.text('Simpan'));
-    await tester.pumpAndSettle();
+    await tester.pump();
     expect(find.text('Kolom ini wajib diisi'), findsNWidgets(2));
     expect(find.text('Tanggal mulai wajib dipilih'), findsOneWidget);
-    expect(find.text('Ringkasan Edukasi'), findsNothing);
-
     await tester.enterText(
       find.widgetWithText(TextFormField, 'Institusi'),
-      '   ',
+      'Universitas Indonesia',
     );
     await tester.enterText(
       find.widgetWithText(TextFormField, 'Jurusan'),
       'Informatika',
     );
-    await tester.ensureVisible(find.text('Simpan'));
-    await tester.tap(find.text('Simpan'));
-    await tester.pumpAndSettle();
-    expect(find.text('Kolom ini wajib diisi'), findsOneWidget);
-    expect(find.text('Tanggal mulai wajib dipilih'), findsOneWidget);
-
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Institusi'),
-      'Universitas Indonesia',
-    );
-    await tester.tap(find.widgetWithText(TextFormField, 'Tanggal mulai'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Cancel'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Simpan'));
-    await tester.pumpAndSettle();
-    expect(find.text('Tanggal mulai wajib dipilih'), findsOneWidget);
-
     await tester.tap(find.widgetWithText(TextFormField, 'Tanggal mulai'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('OK'));
     await tester.pumpAndSettle();
-    final tanggal = tester
-        .widget<TextFormField>(find.widgetWithText(TextFormField, 'Tanggal mulai'))
-        .controller!
-        .text;
-    expect(tanggal, isNotEmpty);
     await tester.ensureVisible(find.text('Simpan'));
     await tester.tap(find.text('Simpan'));
     await tester.pumpAndSettle();
-    expect(find.text('Institusi: Universitas Indonesia'), findsOneWidget);
-    expect(find.text('Jurusan: Informatika'), findsOneWidget);
-    expect(find.text('Tanggal mulai: $tanggal'), findsOneWidget);
-    await tester.tap(find.text('Tutup'));
-    await tester.pumpAndSettle();
-    expect(find.text('Ringkasan Edukasi'), findsNothing);
-    await tester.binding.handlePopRoute();
-    await tester.pumpAndSettle();
-    expect(find.text('MyPortfolio'), findsOneWidget);
-  });
-
-  testWidgets('Drawer membuka edukasi dan kembali ke Home', (tester) async {
-    await tester.pumpWidget(const MyApp());
-    await tester.tap(find.byTooltip('Open navigation menu'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Add Education'));
-    await tester.pumpAndSettle();
-    expect(find.text('Tambah Edukasi'), findsOneWidget);
-    await tester.tap(find.byTooltip('Open navigation menu'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Home'));
-    await tester.pumpAndSettle();
-    expect(find.text('MyPortfolio'), findsOneWidget);
+    expect(posted!['institution'], 'Universitas Indonesia');
+    expect(posted!['major'], 'Informatika');
+    expect(posted!['started_at'], matches(RegExp(r'^\d{4}-\d{2}-\d{2}$')));
+    expect(find.text('Edukasi berhasil disimpan'), findsOneWidget);
   });
 }

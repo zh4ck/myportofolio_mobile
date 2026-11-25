@@ -10,9 +10,12 @@ Kelas : PBP F
 
 1. Instal [Flutter SDK](https://docs.flutter.dev/get-started/install). Periksa environment dengan `flutter doctor`.
 2. Clone repositori ini, lalu masuk ke direktori proyek.
-3. Jalankan `flutter pub get` untuk memasang dependensi.
-4. Jalankan `flutter run` dan pilih devices. Untuk web (chrome), gunakan `flutter run -d chrome`.
-5. Jalankan `flutter analyze` untuk analisis dan `flutter test` untuk pengujian widget.
+3. Jalankan `flutter pub get`, lalu `dart run build_runner build --delete-conflicting-outputs` untuk menghasilkan serialisasi model.
+4. Jalankan backend Django dan migrasinya. Gunakan `flutter run` untuk emulator Android, atau `flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8000` untuk Chrome.
+5. Untuk perangkat fisik, jalankan `adb reverse tcp:8000 tcp:8000`, lalu `flutter run --dart-define=API_BASE_URL=http://localhost:8000`. Untuk server terpasang, ganti URL dengan URL HTTPS server.
+6. Jalankan `flutter analyze` dan `flutter test` untuk memeriksa aplikasi.
+
+Daftar proyek dan edukasi dapat dibaca tanpa login. Penambahan data memerlukan akun superuser; token disimpan dalam memori sampai logout atau aplikasi ditutup. Untuk build APK CI yang terhubung ke backend terpasang, atur variabel GitHub Actions `API_BASE_URL` tanpa garis miring di akhir; tanpa variabel ini APK menggunakan alamat emulator lokal.
 
 ## Progres mingguan
 
@@ -20,6 +23,7 @@ Kelas : PBP F
 - **Tugas 7:** Melengkapi identitas pribadi, membedakan warna setiap action melalui model `ItemHomepage`, mempertahankan feedback SnackBar, dan memperbarui pengujian serta dokumentasi.
 - **Tutorial 09:** Menambahkan drawer, navigasi ke formulir proyek, validasi dan dialog data proyek. Halaman berada di `lib/screens/`, sedangkan drawer dan kartu aksi berada di `lib/widgets/`. Data formulir hanya ditampilkan di dialog dan belum disimpan.
 - **Tugas 8:** Menambahkan formulir edukasi yang bisa dibuka lewat kartu aksi dan drawer. Isi formulir divalidasi lalu ditampilkan dalam dialog, belum disimpan secara permanen.
+- **Tutorial 10 dan Tugas 9:** Menyinkronkan proyek dan edukasi dengan API Django, termasuk login token, daftar, detail, dan formulir terautentikasi.
 
 ## Penggunaan AI
 
